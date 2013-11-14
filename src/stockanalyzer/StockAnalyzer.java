@@ -15,6 +15,8 @@ import java.util.Calendar;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import stockanalyzer.tempDatas.Currency;
+import stockanalyzer.tempDatas.Stocks;
 
 /**
  *
@@ -36,22 +38,18 @@ public class StockAnalyzer {
 //        Writer w = new Writer();
 //        w.addAnalysis(a);
 //        w.saveAnalisies();
-        Reader r = new Reader();
         Integer y = 2013;
         ArrayList<Integer> years = new ArrayList();
         years.add(y);
-        File f = r.createStockArff("djia", years);
-        System.out.println(f);
         Analyzer a = new Analyzer();
-        int instances = 0;
-        try {
-            Scanner sc = new Scanner(f);
-            instances = Integer.valueOf(sc.nextLine().substring(1));
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(StockAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Reader r = new Reader();
+        Stocks stocks = new Stocks(years, a, r);
+        stocks.analyzeStocks();
+        System.out.println(stocks);
+        Currency currency = new Currency(years, a, stocks, r);
+        currency.analyzeCurrency();
+        System.out.println(currency);
         
-        a.setFile(f);
-        a.calcStock(instances);
+        
     }
 }
