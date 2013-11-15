@@ -58,7 +58,7 @@ public class Analyzer {
             prices[3] = model.classifyInstance(ins180);
             Instance ins360 = data.instance(instances + 4);
             prices[4] = model.classifyInstance(ins360);
-
+            
             return prices;
         } catch (Exception ex) {
             Logger.getLogger(Analyzer.class.getName()).log(Level.SEVERE, null, ex);

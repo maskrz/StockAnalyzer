@@ -46,8 +46,8 @@ public class Writer {
         
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:postgresql://127.0.0.1:5432/gpwanalizer", "postgres", "nowe1haslo");
-//                    "jdbc:postgresql://pgsql-591378.vipserv.org/maskrz_prod", "maskrz_dev", "develo");
+//                    "jdbc:postgresql://127.0.0.1:5432/gpwanalizer", "postgres", "nowe1haslo");
+                    "jdbc:postgresql://pgsql-591378.vipserv.org/maskrz_prod", "maskrz_dev", "develo");
             System.out.println("Connected");
             for(Analysis a : analysies) {
                 a.save(connection);
