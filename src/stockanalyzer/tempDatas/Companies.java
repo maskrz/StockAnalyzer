@@ -27,7 +27,7 @@ import stockanalyzer.Writer;
  *
  * @author Skrzypek
  */
-public class Companies {
+public class Companies extends Predictable {
 
     public double[] euro;
     public double[] dollar;
@@ -84,19 +84,53 @@ public class Companies {
         r.companies = this;
     }
 
-    public void analyzeCompanies() {
-        int i = 1;
+    public void analyzeCompanies(double[] w, int historicalPerdiod, int days) {
+        int j = 0;
+        switch (days) {
+            case 30:
+                j = 0;
+                break;
+            case 60:
+                j = 1;
+                break;
+            case 90:
+                j = 2;
+                break;
+            case 180:
+                j = 3;
+                break;
+            case 360:
+                j = 4;
+                break;
+        }
+        setWeights(w);
+        setPeriod(historicalPerdiod);
+        setDays(days);
         for (Company c : companies) {
-//            if(n.getKey().equals("WIG")) {
-            System.out.println(i + " " + c.name);
-            c.value = analyzeCompany(c.name);
-//            }
-            i++;
+//            System.out.println("COMPANY: "+c.name);
+            double[] tab = analyzeCompany(c.name, j);
+            c.value[j] = tab[j];
+            c.rate[j] = tab[j+5];
         }
     }
 
-    public double[] analyzeCompany(String companyName) {
-        File f = r.createCompanyArff(companyName, years, stocks, currency);
+    public double[] analyzeCompany(String cn, int d) {
+        String companyName = cn.toUpperCase();
+//        File f = r.createCompanyArff(companyName, years, stocks, currency);
+//        System.out.println(companyName);
+        String lastLine = ",";
+        Company comp = getCompanyByName(companyName);
+        for (String index : comp.indices) {
+            for (NodeVal n : indicesVal) {
+                if (n.getKey().equals(index)) {
+                    lastLine += n.getValue()[d] + ",";
+                    break;
+                }
+            }
+        }
+        lastLine += "?,?,?,?,?,? \r\n";
+//        System.out.println(days+ " "+period);
+        File f = trimData("src/datas/companies/" + companyName + "/" + companyName + ".arff", lastLine, comp);
         int instances = 0;
         try {
             Scanner sc = new Scanner(f);
@@ -105,7 +139,8 @@ public class Companies {
             Logger.getLogger(StockAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
         }
         a.setFile(f);
-        return a.calcPrices(instances);
+//        System.out.println(f);
+        return a.calcPrices(instances, weights, d);
     }
 
     public Company getCompanyByName(String name) {
@@ -121,7 +156,7 @@ public class Companies {
     public String toString() {
         String s = "";
         for (Company c : companies) {
-            s += createString(c.value, c.name);
+            s += c;
         }
 
         return s;
@@ -146,15 +181,16 @@ public class Companies {
             Properties prop = new Properties();
             prop.load(new FileInputStream("src/properties/Companies.properties"));
             for (Company c : companies) {
-                Analysis a = new Analysis(new BigDecimal(c.value[0]), new BigDecimal(c.value[0]), new BigDecimal(c.value[0]), "0.0", 30, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
+//                System.out.println(c.rate[0]);
+                Analysis a = new Analysis(round(c.actuall), round(c.value[0]), round(c.getPercentage(0)), roundRate(c.rate[0]), 30, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
                 w.addAnalysis(a);
-                a = new Analysis(new BigDecimal(c.value[1]), new BigDecimal(c.value[1]), new BigDecimal(c.value[1]), "0.0", 60, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
+                a = new Analysis(round(c.actuall), round(c.value[1]), round(c.getPercentage(1)), roundRate(c.rate[1]), 60, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
                 w.addAnalysis(a);
-                a = new Analysis(new BigDecimal(c.value[2]), new BigDecimal(c.value[2]), new BigDecimal(c.value[2]), "0.0", 90, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
+                a = new Analysis(round(c.actuall), round(c.value[2]), round(c.getPercentage(2)), roundRate(c.rate[2]), 90, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
                 w.addAnalysis(a);
-                a = new Analysis(new BigDecimal(c.value[3]), new BigDecimal(c.value[3]), new BigDecimal(c.value[3]), "0.0", 180, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
+                a = new Analysis(round(c.actuall), round(c.value[3]), round(c.getPercentage(3)), roundRate(c.rate[3]), 180, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
                 w.addAnalysis(a);
-                a = new Analysis(new BigDecimal(c.value[4]), new BigDecimal(c.value[4]), new BigDecimal(c.value[4]), "0.0", 360, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
+                a = new Analysis(round(c.actuall), round(c.value[4]), round(c.getPercentage(4)), roundRate(c.rate[4]), 360, date, c.name, Integer.valueOf(prop.getProperty(c.name)));
                 w.addAnalysis(a);
             }
         } catch (FileNotFoundException ex) {
@@ -163,10 +199,29 @@ public class Companies {
             Logger.getLogger(Companies.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public BigDecimal round(double d) {
+        double res = Math.round(d*100);
+	res /= 100;
+        return new BigDecimal(res);
+    }
+    
+    public String roundRate(double d) {
+        double res = Math.round(d*100);
+	res /= 100;
+        return res+"";
+    }
 
     public void save() {
         Writer w = new Writer();
         prepareToSave(w);
         w.saveAnalisies();
+    }
+
+    public void createArffs() {
+        for(Company c : companies) {
+//            System.out.println(c.name);
+            r.createCompanyArff(c.name, years);
+        } 
     }
 }

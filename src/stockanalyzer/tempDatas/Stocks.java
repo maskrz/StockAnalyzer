@@ -18,7 +18,7 @@ import stockanalyzer.StockAnalyzer;
  *
  * @author Skrzypek
  */
-public class Stocks {
+public class Stocks extends Predictable{
 
     public double[] djia;
     public double[] nasdaq;
@@ -65,14 +65,41 @@ public class Stocks {
         return s;
     }
 
-    public void analyzeStocks() {
-        djia = analyzeStock("djia");
-        nasdaq = analyzeStock("nasdaq");
-        eurostoxx = analyzeStock("eurostoxx50");
+    public void analyzeStocks(double[] w, int historicalPerdiod, int days) {
+        int j = 0;
+        System.out.println(days);
+        switch (days) {
+                case 30: 
+                    j = 0;
+                    break;
+                case 60:
+                    j = 1;
+                    break;
+                case 90:
+                    j = 2;
+                    break;
+                case 180:
+                    j = 3;
+                    break;
+                case 360:
+                    j = 4;
+                    break;
+            }
+        setWeights(w);
+        setPeriod(historicalPerdiod);
+        setDays(days);
+//        System.out.println("djia");
+        djia = analyzeStock("djia", j);
+//        System.out.println("nasdaq");
+        nasdaq = analyzeStock("nasdaq", j);
+//        System.out.println("eurostoxx");
+        eurostoxx = analyzeStock("eurostoxx50", j);
     }
     
-    public double[] analyzeStock(String stock) {
-        File f = r.createStockArff(stock, years);
+    public double[] analyzeStock(String stock, int d) {
+//        File f = r.createStockArff(stock, years);
+        File f = trimData("src/datas/" + stock + "/" + stock + ".arff", ",?");
+//        System.out.println("file trimmed");
         int instances = 0;
         try {
             Scanner sc = new Scanner(f);
@@ -81,6 +108,14 @@ public class Stocks {
             Logger.getLogger(StockAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
         }        
         a.setFile(f);
-        return a.calcPrices(instances);
+//        System.out.println("file setted");
+//        System.out.println(f);
+        return a.calcPrices(instances, weights, d);
+    }
+    
+    public void createArffs() {
+        r.createStockArff("djia", years);
+        r.createStockArff("nasdaq", years);
+        r.createStockArff("eurostoxx50", years);
     }
 }

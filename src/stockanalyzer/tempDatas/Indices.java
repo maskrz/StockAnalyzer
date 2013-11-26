@@ -25,7 +25,7 @@ import stockanalyzer.tempDatas.Stocks;
  *
  * @author Skrzypek
  */
-public class Indices {
+public class Indices extends Predictable{
 
     public double[] euro;
     public double[] dollar;
@@ -64,18 +64,42 @@ public class Indices {
         r.indicesVal = indicesVal;
     }
     
-    public void analyzeIndices() {
+    public void analyzeIndices(double[] w, int historicalPerdiod, int days) {
+        int j = 0;
+        switch (days) {
+                case 30: 
+                    j = 0;
+                    break;
+                case 60:
+                    j = 1;
+                    break;
+                case 90:
+                    j = 2;
+                    break;
+                case 180:
+                    j = 3;
+                    break;
+                case 360:
+                    j = 4;
+                    break;
+            }
+        setWeights(w);
+        setPeriod(historicalPerdiod);
+        setDays(days);
         for(NodeVal n : indicesVal) {
 //            if(n.getKey().equals("WIG")) {
-            System.out.println(n.getKey());
-                n.value = analyzeIndex(n.getKey());
+//            System.out.println(n.getKey());
+                n.value = analyzeIndex(n.getKey(), j);
 //            }
             
         }
     }
     
-    public double[] analyzeIndex(String indexName) {
-        File f = r.createIndexArff(indexName, years, stocks, currency);
+    public double[] analyzeIndex(String in, int d) {
+        String indexName = in.toUpperCase();
+//        File f = r.createIndexArff(indexName, years, stocks, currency);
+        String lastLine = "," + stocks.djia[d] + "," + stocks.nasdaq[d] + "," + stocks.eurostoxx[d] + "," + currency.dollar[d] + "," + currency.euro[d] + "," + "?" + "," + "?" + "\r\n";
+        File f = trimData("src/datas/indices/" + indexName + "/" + indexName + ".arff", lastLine);
         int instances = 0;
         try {
             Scanner sc = new Scanner(f);
@@ -84,7 +108,8 @@ public class Indices {
             Logger.getLogger(StockAnalyzer.class.getName()).log(Level.SEVERE, null, ex);
         }        
         a.setFile(f);
-        return a.calcPrices(instances);
+//        System.out.println(f);
+        return a.calcPrices(instances, weights, d);
     }
     
     @Override
@@ -107,5 +132,11 @@ public class Indices {
                 + "in 180days: " + prices[3] + "\r\n"
                 + "in 360days: " + prices[4] + "\r\n";
         return s;
+    }
+
+    public void createArffs() {
+        for(Node n : indices) {
+            r.createIndexArff(n.getKey(), years);
+        }     
     }
 }
