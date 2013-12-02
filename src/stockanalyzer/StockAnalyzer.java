@@ -26,6 +26,7 @@ public class StockAnalyzer {
         Analyzer a = new Analyzer(r);
         a.createArffFiles();
         a.analyze();    
+        
 //        System.out.println(a.companies);
     }
 }

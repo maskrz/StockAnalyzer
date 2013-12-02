@@ -23,8 +23,8 @@ public class Company {
     }
     
     public double getPercentage(int i) {
-        double r = value[i] - actuall;
-        r /= value[i];
+        double res = value[i] / actuall;
+        double r = res - 1;
         return r*100;
     }
     
